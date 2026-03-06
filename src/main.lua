@@ -18,9 +18,14 @@ local task = require('task')
 _G.utils = utils
 _G.patcher = patcher
 _G.task = task
+_G.config = config
 
 _G.ipReqPerSec = {}
 _G.rateLimitedIps = {}
+
+-- Functions
+local dprint = utils.dprint
+dprint('Debug is enabled.')
 
 http.createServer(function(req, res)
     -- patch res 
@@ -44,7 +49,7 @@ http.createServer(function(req, res)
         ipReqPerSec[address] = (ipReqPerSec[address] or 0) - 1
 
         if ipReqPerSec[address] <= 0 then
-            ipReqPerSec[address] = nil -- memory efficent!!
+            ipReqPerSec[address] = nil -- memory efficent!
         end
     end)
 

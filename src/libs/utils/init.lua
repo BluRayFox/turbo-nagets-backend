@@ -8,4 +8,11 @@ function utils.urlToTable(url)
     return parts
 end
 
+function utils.dprint(...) -- debug pring
+    if _G.config.debug then
+        print(...)
+    end
+end
+
+
 return utils

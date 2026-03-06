@@ -1,2 +1,2 @@
-# turbo_nagets
-Website backend built with [Luvit.](https://luvit.io)
+# Turbo Nuggets Backend
+Turbo Nuggets Website Backend, built with **[Luvit.](https://luvit.io)**

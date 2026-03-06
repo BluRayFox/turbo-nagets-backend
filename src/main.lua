@@ -18,8 +18,8 @@ _G.utils = utils
 _G.patcher = patcher
 _G.task = task
 
-local ipReqPerSec = {}
-local rateLimitedIps = {}
+_G.ipReqPerSec = {}
+_G.rateLimitedIps = {}
 
 http.createServer(function(req, res)
     -- patch res 

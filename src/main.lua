@@ -26,10 +26,9 @@ _G.errorlogs = {}
 
 -- Functions
 local dprint = utils.dprint
-
 _G.dprint = dprint
 
-
+-- Code
 dprint('Debug is enabled.')
 
 http.createServer(function(req, res)
@@ -77,22 +76,38 @@ http.createServer(function(req, res)
         www = path:sub(2)
     end
 
-    local success, handler = pcall(function()
-        return require('./www/'..www..'/handler')
-    end)
-    
-    if not success then
+    -- ROUTER --
+    local handler
+    local success = false
+
+    local segments = utils.urlToTable(path)
+
+    if path == "/" then
         success, handler = pcall(function()
-            return require('./www/'..urlTable[1]..'/handler')
+            return require('./www/.home/handler')
         end)
+    else
+        for i = #segments, 1, -1 do
+            local route = table.concat(segments, "/", 1, i)
+
+            success, handler = pcall(function()
+                return require('./www/' .. route .. '/handler')
+            end)
+
+            if success then
+                www = route
+                break
+            end
+        end
     end
 
-    if not success then
+    if not handler then
         res:redirect('/not-found', nil, true)
         return
     end
 
     local success, err = pcall(function()
+        
         local env = {}  -- Build environment for handler
         setmetatable(env, {__index = _G})
 

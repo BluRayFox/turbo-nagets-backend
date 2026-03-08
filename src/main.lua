@@ -22,8 +22,14 @@ _G.config = config
 _G.ipReqPerSec = {}
 _G.rateLimitedIps = {}
 
+_G.errorlogs = {}
+
 -- Functions
 local dprint = utils.dprint
+
+_G.dprint = dprint
+
+
 dprint('Debug is enabled.')
 
 http.createServer(function(req, res)
@@ -58,7 +64,7 @@ http.createServer(function(req, res)
         return
     end
 
-    local logMessage = '[%s|%s]: %s -> %s' -- time, ip, method, path
+    local logMessage = '[%s||%s]: %s -> %s' -- time, ip, method, path
     print(logMessage:format(os.date('%H:%M:%S'), address, req.method, req.url))
 
     local parsed = url.parse(req.url)
@@ -87,6 +93,16 @@ http.createServer(function(req, res)
     end
 
     local success, err = pcall(function()
+        local env = {}  -- Build environment for handler
+        setmetatable(env, {__index = _G})
+
+        env.print = function(...)
+            local msg = '   [%s||%s]: ' .. table.concat({...}, '   ')
+
+            print(msg:format(www, 'handler'))
+        end
+
+        setfenv(handler.handler, env)
         handler.handler(req, res)
     end)
 

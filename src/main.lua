@@ -9,17 +9,22 @@ local url = require('url')
 local patcher = require('patcher')
 patcher.patchLuajit() -- for some reason crashes on termux if 
                       -- certain patches are not applied
-------
+------      ------
+
 local config = require('./config')
 local utils = require('utils')
 local task = require('task')
-------
+local neco = require('neco')
+
+------      ------
 
 -- globals --
 _G.utils = utils
 _G.patcher = patcher
 _G.task = task
 _G.config = config
+_G.VERSION = 'v0.1.2-alpha'
+_G.neco = neco
 
 _G.ipReqPerSec = {}
 _G.rateLimitedIps = {}

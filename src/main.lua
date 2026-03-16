@@ -14,6 +14,7 @@ patcher.patchLuajit() -- for some reason crashes on termux if
 local config = require('./config')
 local utils = require('utils')
 local task = require('task')
+local locales = require('locales')
 local neco = require('neco')
 
 ------      ------
@@ -24,6 +25,7 @@ _G.patcher = patcher
 _G.task = task
 _G.config = config
 _G.VERSION = 'v0.1.2-alpha'
+_G.locales = locales
 _G.neco = neco
 
 _G.ipReqPerSec = {}
@@ -34,9 +36,10 @@ _G.errorlogs = {}
 -- Functions
 local dprint = utils.dprint
 _G.dprint = dprint
+local getlstr = locales.getString
 
 -- Code
-dprint('Debug is enabled.')
+dprint(getlstr('debug_mode_enabled'))
 
 http.createServer(function(req, res)
     -- patch res 
@@ -123,6 +126,10 @@ http.createServer(function(req, res)
 
             print(msg:format(www, 'handler'))
         end
+        
+        if not handler or not handler.handler then
+            error('no handler found')
+        end
 
         setfenv(handler.handler, env)
         handler.handler(req, res)
@@ -130,10 +137,10 @@ http.createServer(function(req, res)
 
     if not success then
         res:finish('503: Unable to complete the request.')
-        print('Unable to complete the request: '..err)
+        print(getlstr('503'):format(err))
     end
 
     return
 end):listen(config.port)
 
-print('Running on http://localhost' .. (config.port ~= 80 and ':'..config.port or ''))
+print(getlstr('running_on_host'):format('http://localhost' .. (config.port ~= 80 and ':'..config.port or '')))

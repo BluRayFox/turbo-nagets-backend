@@ -1,5 +1,5 @@
 
-_G.VERSION = 'v0.1.3-alpha'
+_G.VERSION = 'v0.1.4-alpha'
 
 -- packages and libs require aliases
 package.path = './libs/?.lua;'
@@ -12,13 +12,16 @@ local patcher = require('patcher')
 patcher.patchLuajit() -- for some reason crashes on termux if 
                       -- certain patches are not applied
 ------      ------
-
+_G.ocular = require('ocular')
+_G.event = require('event')     -- Event system.
 _G.config = require('./config')
 _G.locales = require('locales')
 _G.getlstr = locales.getString
 _G.utils = require('utils')
 _G.task = require('task')
 _G.neco = require('neco')
+_G.ds = require('ds')
+_G.datastores = {}  -- Global Datastore Table Collection
 
 ------      ------
 
@@ -49,9 +52,9 @@ end
 
 server.startMainserver = function()
 
-neco.loadPlugins()
+neco.loadPluginsV2()
 
-local mainserver = http.createServer(function(req, res)
+_G.mainserver = http.createServer(function(req, res)
     -- patch res 
     patcher.patchRes(res, {redirect = true})
     
@@ -59,15 +62,27 @@ local mainserver = http.createServer(function(req, res)
     local address = req.socket:address().ip
 
 
-    do
+    -- Check rate limit first.
+    -- Do not process the request if rate limited!
+    if rateLimitedIps[address] then
+        res.statusCode = 429
+        res:finish('429: Too Many Requests.')
+        return
+    end
+
+    do -- TODO: Add neco events to use event module [Partially done]
         local scReq = table.deepCopy(req, false)
         local scRes = table.deepCopy(res, false)
 
-        neco.event('onServerRequest', scReq, scRes)
-        neco.event('onServerRequestWritable', req, res)
+        -- neco.event('onServerRequest', scReq, scRes)
+        neco.events['onServerRequest']:fire(scReq, scRes)
+
+        -- neco.event('onServerRequestWritable', req, res)
+        neco.events['onServerRequestWritable']:fire(req, res)
 
     end
 
+    -- Rate Limit Tasks --
     task.spawn(function()
         ipReqPerSec[address] = (ipReqPerSec[address] or 0) + 1
 
@@ -87,15 +102,11 @@ local mainserver = http.createServer(function(req, res)
         end
     end)
 
-    if rateLimitedIps[address] then
-        res.statusCode = 429
-        res:finish('429: Too Many Requests.')
-        return
-    end
-
+    -- Logging
     local logMessage = '[%s||%s]: %s -> %s' -- time, ip, method, path
     print(logMessage:format(os.date('%H:%M:%S'), address, req.method, req.url))
 
+    -- Routing part 
     local parsed = url.parse(req.url)
     local path = parsed.pathname
 
@@ -162,10 +173,10 @@ local mainserver = http.createServer(function(req, res)
 
     return
 end)
-mainserver:listen(config.port)
+mainserver:listen(config.port or 80)
 server.mainserver = mainserver
 
-print(getlstr('running_on_host'):format('http://localhost' .. (config.port ~= 80 and ':'..config.port or '')))
+print(getlstr('running_on_host'):format('http://localhost' .. (config.port ~= 80 and ':'..config.port or ':80')))
 
 end
 
@@ -179,4 +190,3 @@ if _G.MANAGER then return server end
 dprint(getlstr('debug_mode_enabled'))
 
 server.startMainserver()
-

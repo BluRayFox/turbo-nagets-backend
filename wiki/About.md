@@ -1,2 +1,2 @@
 ## What is this?
-This is a luvit http framework that helps you making your server faster blah blah blah no one reads it,.,...
+This is a luvit http framework that helps you build your app faster.

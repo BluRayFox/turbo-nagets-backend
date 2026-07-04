@@ -6,7 +6,7 @@
     - [ ] Spanish
 - [ ] Finish Manager Script
     - [ ] Manage Plugins (Install/Remove/Update/Fetch/List)
-    - [ ] Manage Configs (Import/Export)
+- [ ] Add HTTPS Support
 
 
 
